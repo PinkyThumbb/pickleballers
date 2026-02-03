@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: pickleballers
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pickleball
+    username: pickle
+    password: ball
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # temporary for first run
+    show-sql: true

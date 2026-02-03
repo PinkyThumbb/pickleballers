@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: pickleball-postgres
+    environment:
+      POSTGRES_DB: pickleball
+      POSTGRES_USER: pickle
+      POSTGRES_PASSWORD: ball
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
