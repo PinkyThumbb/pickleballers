@@ -15,16 +15,16 @@ public class MatchController {
     private final MatchRepository repository;
     private final MatchService matchService;
 
-    @GetMapping
+    @GetMapping("/getMatches")
     public List<Match> all() {
         return repository.findAll();
     }
 
-    @PostMapping
+    @PostMapping("/createMatch")
     public Match submit(@RequestBody Match match) {
         // Idempotency check
-        matchService.saveMatch(match);
-        return repository.findByIdempotencyKey(match.getIdempotencyKey())
-                .orElseGet(() -> repository.save(match));
+        return matchService.saveMatch(match);
+//        return repository.findByIdempotencyKey(match.getIdempotencyKey())
+//                .orElseGet(() -> repository.save(match));
     }
 }

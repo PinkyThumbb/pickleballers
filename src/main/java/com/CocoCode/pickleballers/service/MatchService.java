@@ -15,14 +15,20 @@ public class MatchService {
     private MatchRepository matchRepository;
 
     @Transactional
-    public void saveMatch(Match match) {
+    public Match saveMatch(Match match) {
         // Check for an existing match between these two players that is PENDING
         Optional<Match> existing = matchRepository
                 .findPendingMatchBetweenPlayers(Match.Status.PENDING, match.getPlayerA().getId(), match.getPlayerB().getId());
 
         // If found, return the existing match (idempotency)
         // Otherwise, save the new match
-        existing.orElseGet(() -> matchRepository.save(match));
-
+        if (existing.isEmpty()) {
+            matchRepository.save(match);
+        }
+        else {
+            existing.get().setStatus(Match.Status.CONFIRMED);
+            matchRepository.save(existing.get());
+        }
+        return match;
     }
 }
