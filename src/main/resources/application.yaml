@@ -9,5 +9,5 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop  # temporary for first run
+      ddl-auto: update
     show-sql: true
