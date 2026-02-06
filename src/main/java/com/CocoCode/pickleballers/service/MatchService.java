@@ -3,16 +3,18 @@ package com.CocoCode.pickleballers.service;
 import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
-@Data
 @Service
+@RequiredArgsConstructor
 public class MatchService {
 
-    private MatchRepository matchRepository;
+    private final MatchRepository matchRepository;
 
     @Transactional
     public Match saveMatch(Match match) {
@@ -23,6 +25,9 @@ public class MatchService {
         // If found, return the existing match (idempotency)
         // Otherwise, save the new match
         if (existing.isEmpty()) {
+            String key = Optional.ofNullable(match.getIdempotencyKey())
+                    .orElse(UUID.randomUUID().toString());
+            match.setIdempotencyKey(key);
             matchRepository.save(match);
         }
         else {

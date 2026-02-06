@@ -11,8 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface MatchRepository extends JpaRepository<Match, Long> {
-    Optional<Match> findByIdempotencyKey(String key);
 
+    Optional<Match> findByIdempotencyKey(String key);
 
     @Query("""
         SELECT m FROM Match m
