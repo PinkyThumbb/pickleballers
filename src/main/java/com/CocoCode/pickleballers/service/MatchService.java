@@ -27,7 +27,7 @@ public class MatchService {
         if (existing.isEmpty()) {
             String key = Optional.ofNullable(match.getIdempotencyKey())
                     .orElse(UUID.randomUUID().toString());
-            match.setIdempotencyKey(key); // this will be set from client in future  updates
+            match.setIdempotencyKey(key); // this will be set from client in future updates
             matchRepository.save(match);
         }
         else {
