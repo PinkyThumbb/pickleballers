@@ -3,12 +3,12 @@ package com.CocoCode.pickleballers.controller;
 import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 import com.CocoCode.pickleballers.service.MatchService;
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Data
 @RestController
+@AllArgsConstructor
 @RequestMapping("/matches")
 public class MatchController {
 

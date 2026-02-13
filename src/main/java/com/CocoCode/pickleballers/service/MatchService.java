@@ -3,7 +3,7 @@ package com.CocoCode.pickleballers.service;
 import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class MatchService {
 
     private final MatchRepository matchRepository;

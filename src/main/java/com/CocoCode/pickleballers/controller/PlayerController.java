@@ -2,13 +2,14 @@ package com.CocoCode.pickleballers.controller;
 
 import com.CocoCode.pickleballers.entity.Player;
 import com.CocoCode.pickleballers.repository.PlayerRepository;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Data
 @RestController
+@AllArgsConstructor
 @RequestMapping("/players")
 public class PlayerController {
 
