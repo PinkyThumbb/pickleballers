@@ -7,6 +7,8 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.jdbc.Sql;
+
+import java.io.IOException;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -29,5 +31,22 @@ public class PlayerControllerIT extends BaseIT {
         List<Player> players = response.as(new TypeRef<>() {});
         assertNotNull(players);
         assertEquals(3, players.size());
+    }
+
+    @Test
+    void createPlayers_returnsSeededPlayers() throws IOException {
+        //ARRANGE AND ACT
+        Response response = given()
+                .contentType("application/json")
+                .accept(ContentType.JSON)
+                .body(readStringFromFile("json/createPlayer.json"))
+                .post("/players/createPlayer");
+
+        //ASSERT
+        assertEquals(200, response.getStatusCode());
+        Player created = response.as(Player.class);
+        assertNotNull(created);
+        assertEquals("Jacob", created.getName());
+        assertEquals("JacobWinnifer@gmail.com", created.getEmail());
     }
 }
