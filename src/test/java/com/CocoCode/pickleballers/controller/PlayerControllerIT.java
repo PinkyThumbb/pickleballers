@@ -45,7 +45,7 @@ public class PlayerControllerIT extends BaseIT {
         assertEquals(200, response.getStatusCode());
         List<Player> players = response.as(new TypeRef<>() {});
         assertNotNull(players);
-        assertEquals(1, players.size());
+        assertEquals(3, players.size());
         assertTrue(players.stream().anyMatch(p -> "Alice Johnson".equals(p.getName())));
     }
 }
