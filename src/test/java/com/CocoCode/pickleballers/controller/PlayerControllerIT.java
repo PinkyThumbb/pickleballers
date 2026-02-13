@@ -46,6 +46,7 @@ public class PlayerControllerIT extends BaseIT {
         assertEquals(200, response.getStatusCode());
         Player created = response.as(Player.class);
         assertNotNull(created);
+        assertEquals(4, created.getId());
         assertEquals("Jacob", created.getName());
         assertEquals("JacobWinnifer@gmail.com", created.getEmail());
     }
