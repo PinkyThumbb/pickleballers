@@ -1,0 +1,7 @@
+{
+  "playerA": { "id": 2 },
+  "playerB": { "id": 3 },
+  "score": "11-9",
+  "status": "PENDING",
+  "idempotencyKey": "match-12345"
+}

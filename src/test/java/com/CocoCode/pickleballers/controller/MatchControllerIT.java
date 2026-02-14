@@ -1,7 +1,7 @@
 package com.CocoCode.pickleballers.controller;
 
 import com.CocoCode.pickleballers.BaseIT;
-import com.CocoCode.pickleballers.entity.Player;
+import com.CocoCode.pickleballers.entity.Match;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
@@ -14,38 +14,42 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class PlayerControllerIT extends BaseIT {
+public class MatchControllerIT extends BaseIT {
 
     @Test
-    void getPlayers_returnsSeededPlayers() {
+    void getMatches_returnsMatches() {
         //ARRANGE AND ACT
         Response response = given()
                 .contentType("application/json")
                 .accept(ContentType.JSON)
-                .get("/players/getPlayers");
+                .get("/matches/getMatches");
 
         //ASSERT
         assertEquals(200, response.getStatusCode());
-        List<Player> players = response.as(new TypeRef<>() {});
-        assertNotNull(players);
-        assertEquals(3, players.size());
+        List<Match> matches = response.as(new TypeRef<>() {});
+        assertNotNull(matches);
+        assertEquals(1, matches.size());
     }
 
     @Test
-    void createPlayers_returnsSeededPlayers() throws IOException {
+    void createNewMatch_returnsMatch() throws IOException {
         //ARRANGE AND ACT
         Response response = given()
                 .contentType("application/json")
                 .accept(ContentType.JSON)
-                .body(readStringFromFile("json/createPlayer.json"))
-                .post("/players/createPlayer");
+                .body(readStringFromFile("json/createPendingMatch.json"))
+                .post("/matches/createMatch");
 
         //ASSERT
         assertEquals(200, response.getStatusCode());
-        Player created = response.as(Player.class);
+        Match created = response.as(Match.class);
         assertNotNull(created);
-        assertEquals(4, created.getId());
-        assertEquals("Jacob", created.getName());
-        assertEquals("JacobWinnifer@gmail.com", created.getEmail());
+        assertEquals(2, created.getId());
+        assertEquals(2, created.getPlayerA().getId());
+        assertEquals(3, created.getPlayerB().getId());
+        assertEquals("11-9", created.getScore());
+        assertEquals(Match.Status.PENDING, created.getStatus());
+        assertEquals("match-12345", created.getIdempotencyKey());
     }
 }
+
