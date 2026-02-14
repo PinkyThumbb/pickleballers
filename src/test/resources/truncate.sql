@@ -1,0 +1,4 @@
+TRUNCATE TABLE
+    player,
+    match
+RESTART IDENTITY CASCADE;
