@@ -4,6 +4,8 @@ import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 import com.CocoCode.pickleballers.service.MatchService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -21,10 +23,14 @@ public class MatchController {
     }
 
     @PostMapping("/createMatch")
-    public Match submit(@RequestBody Match match) {
-        // Idempotency check
-        return matchService.saveMatch(match);
-//        return repository.findByIdempotencyKey(match.getIdempotencyKey())
-//                .orElseGet(() -> repository.save(match));
+    public ResponseEntity<Match> createMatch(
+            @RequestBody Match match,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            match.setIdempotencyKey(idempotencyKey);
+        }
+        Match saved = matchService.saveMatch(match);
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 }

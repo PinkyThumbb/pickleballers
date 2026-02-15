@@ -4,11 +4,13 @@ import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -18,22 +20,41 @@ public class MatchService {
 
     @Transactional
     public Match saveMatch(Match match) {
-        // Check for an existing match between these two players that is PENDING
-        Optional<Match> existing = matchRepository
-                .findPendingMatchBetweenPlayers(Match.Status.PENDING, match.getPlayerA().getId(), match.getPlayerB().getId());
 
-        // If found, return the existing match (idempotency)
-        // Otherwise, save the new match
-        if (existing.isEmpty()) {
-            String key = Optional.ofNullable(match.getIdempotencyKey())
-                    .orElse(UUID.randomUUID().toString());
-            match.setIdempotencyKey(key); // this will be set from client in future updates
-            matchRepository.save(match);
+        if (match.getIdempotencyKey() == null) {
+            throw new IllegalArgumentException("Idempotency key required");
         }
-        else {
-            existing.get().setStatus(Match.Status.CONFIRMED);
-            matchRepository.save(existing.get());
+
+        try {
+            Optional<Match> pending = matchRepository
+                    .findPendingMatchBetweenPlayers(
+                            Match.Status.PENDING,
+                            match.getPlayerA().getId(),
+                            match.getPlayerB().getId()
+                    );
+
+            if (pending.isPresent() && !pending.get().getIdempotencyKey().equals(match.getIdempotencyKey())) {
+
+                Match existing = pending.get();
+                existing.setStatus(Match.Status.CONFIRMED);
+                return matchRepository.save(existing);
+            }
+            else if (pending.isPresent()) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Idempotency key already exists for pending match"
+                );
+            }
+
+            match.setStatus(Match.Status.PENDING);
+            return matchRepository.save(match);
+
+        } catch (DataIntegrityViolationException e) {
+
+            // If insert failed because idempotency key already exists
+            return matchRepository
+                    .findByIdempotencyKey(match.getIdempotencyKey())
+                    .orElseThrow(() -> e);
         }
-        return match;
     }
 }

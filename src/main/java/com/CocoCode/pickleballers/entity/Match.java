@@ -6,6 +6,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_match_idempotency", columnNames = "idempotency_key")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,12 +27,13 @@ public class Match {
     @ManyToOne
     private Player playerB;
 
-    private String score; // e.g., "11-9, 7-11, 11-8"
+    private String score;
 
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
-    private String idempotencyKey; // ensures single processing
+    @Column(name = "idempotency_key", nullable = false)
+    private String idempotencyKey;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 

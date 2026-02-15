@@ -43,7 +43,7 @@ public class MatchControllerIT extends BaseIT {
                 .post("/matches/createMatch");
 
         //ASSERT
-        assertEquals(200, response.getStatusCode());
+        assertEquals(201, response.getStatusCode());
         Match created = response.as(Match.class);
         assertNotNull(created);
         assertEquals(2, created.getId());
