@@ -1,5 +1,7 @@
 package com.CocoCode.pickleballers.controller;
 
+import com.CocoCode.pickleballers.dto.CreateMatchRequestDTO;
+import com.CocoCode.pickleballers.dto.CreateMatchResponseDTO;
 import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 import com.CocoCode.pickleballers.service.MatchService;
@@ -23,14 +25,11 @@ public class MatchController {
     }
 
     @PostMapping("/createMatch")
-    public ResponseEntity<Match> createMatch(
-            @RequestBody Match match,
+    public ResponseEntity<CreateMatchResponseDTO> createMatch(
+            @RequestBody CreateMatchRequestDTO match,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
 
-        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
-            match.setIdempotencyKey(idempotencyKey);
-        }
-        Match saved = matchService.saveMatch(match);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        CreateMatchResponseDTO createdMatch = matchService.createMatch(match, idempotencyKey);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdMatch);
     }
 }

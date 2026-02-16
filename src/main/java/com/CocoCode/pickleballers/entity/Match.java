@@ -32,7 +32,8 @@ public class Match {
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
-    @Column(name = "idempotency_key", nullable = false)
+    @Setter(AccessLevel.NONE)
+    @Column(name = "idempotency_key", nullable = false, updatable = false)
     private String idempotencyKey;
 
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -40,5 +41,19 @@ public class Match {
     public enum Status {
         PENDING,
         CONFIRMED
+    }
+
+    public Match(Player playerA,
+                 Player playerB,
+                 String score,
+                 Status status,
+                 String idempotencyKey,
+                 LocalDateTime createdAt) {
+        this.playerA = playerA;
+        this.playerB = playerB;
+        this.score = score;
+        this.status = status;
+        this.idempotencyKey = idempotencyKey;
+        this.createdAt = createdAt;
     }
 }

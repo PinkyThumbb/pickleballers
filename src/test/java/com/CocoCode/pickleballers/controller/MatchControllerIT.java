@@ -1,6 +1,7 @@
 package com.CocoCode.pickleballers.controller;
 
 import com.CocoCode.pickleballers.BaseIT;
+import com.CocoCode.pickleballers.dto.CreateMatchResponseDTO;
 import com.CocoCode.pickleballers.entity.Match;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
@@ -40,18 +41,19 @@ public class MatchControllerIT extends BaseIT {
                 .contentType("application/json")
                 .accept(ContentType.JSON)
                 .body(readStringFromFile("json/createPendingMatch.json"))
+                .header("Idempotency-Key", "a8252246-1764-4583-ab31-470ccdfe3d7f")
                 .post("/matches/createMatch");
 
         //ASSERT
         assertEquals(201, response.getStatusCode());
-        Match created = response.as(Match.class);
+        CreateMatchResponseDTO created = response.as(CreateMatchResponseDTO.class);
         assertNotNull(created);
         assertEquals(2, created.getId());
-        assertEquals(2, created.getPlayerA().getId());
-        assertEquals(3, created.getPlayerB().getId());
+        assertEquals(2, created.getPlayerAId());
+        assertEquals(3, created.getPlayerBId());
         assertEquals("11-9", created.getScore());
         assertEquals(Match.Status.PENDING, created.getStatus());
-        assertEquals("match-12345", created.getIdempotencyKey());
+        assertEquals("a8252246-1764-4583-ab31-470ccdfe3d7f", created.getIdempotencyKey());
     }
 }
 

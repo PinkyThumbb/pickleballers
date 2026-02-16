@@ -1,15 +1,17 @@
 package com.CocoCode.pickleballers.service;
 
+import com.CocoCode.pickleballers.dto.CreateMatchRequestDTO;
+import com.CocoCode.pickleballers.dto.CreateMatchResponseDTO;
 import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 
+import com.CocoCode.pickleballers.repository.PlayerRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -17,6 +19,7 @@ import java.util.Optional;
 public class MatchService {
 
     private final MatchRepository matchRepository;
+    private final PlayerRepository playerRepository;
 
     @Transactional
     public Match saveMatch(Match match) {
@@ -33,17 +36,17 @@ public class MatchService {
                             match.getPlayerB().getId()
                     );
 
-            if (pending.isPresent() && !pending.get().getIdempotencyKey().equals(match.getIdempotencyKey())) {
-
+            if (pending.isPresent()) {
                 Match existing = pending.get();
-                existing.setStatus(Match.Status.CONFIRMED);
-                return matchRepository.save(existing);
-            }
-            else if (pending.isPresent()) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "Idempotency key already exists for pending match"
-                );
+
+                if (!existing.getIdempotencyKey().equals(match.getIdempotencyKey())
+                        && existing.getScore().equalsIgnoreCase(match.getScore())) { //todo - make better score comparison and add dispute resolution process
+                    existing.setStatus(Match.Status.CONFIRMED);
+                    return matchRepository.save(existing);
+                }
+                else {
+                    return existing;
+                }
             }
 
             match.setStatus(Match.Status.PENDING);
@@ -57,4 +60,30 @@ public class MatchService {
                     .orElseThrow(() -> e);
         }
     }
+
+    @Transactional
+    public CreateMatchResponseDTO createMatch(CreateMatchRequestDTO request, String idempotencyKey) {
+
+        Match match = new Match(
+                playerRepository.getReferenceById(request.getPlayerAId()),
+                playerRepository.getReferenceById(request.getPlayerBId()),
+                request.getScore(),
+                Match.Status.PENDING,
+                idempotencyKey,
+                LocalDateTime.now()
+        );
+
+        Match saved = saveMatch(match);
+
+        return new CreateMatchResponseDTO(
+                saved.getId(),
+                saved.getPlayerA().getId(),
+                saved.getPlayerB().getId(),
+                saved.getScore(),
+                saved.getStatus(),
+                saved.getIdempotencyKey(),
+                saved.getCreatedAt()
+        );
+    }
+
 }
