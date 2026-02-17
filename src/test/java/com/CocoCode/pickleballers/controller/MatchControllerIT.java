@@ -35,7 +35,7 @@ public class MatchControllerIT extends BaseIT {
     }
 
     @Test
-    void createNewMatch_returnsMatch() throws IOException {
+    void createNewMatch_returnsPendingMatch() throws IOException {
         //ARRANGE AND ACT
         Response response = given()
                 .contentType("application/json")
@@ -54,6 +54,50 @@ public class MatchControllerIT extends BaseIT {
         assertEquals("11-9", created.getScore());
         assertEquals(Match.Status.PENDING, created.getStatus());
         assertEquals("a8252246-1764-4583-ab31-470ccdfe3d7f", created.getIdempotencyKey());
+    }
+
+    @Test
+    void createExistingMatch_returnsMatchConfirmed() throws IOException {
+        //ARRANGE AND ACT
+        Response response = given()
+                .contentType("application/json")
+                .accept(ContentType.JSON)
+                .body(readStringFromFile("json/createConfirmedMatch.json"))
+                .header("Idempotency-Key", "a8252246-1764-4583-ab31-470ccdfe3d7f")
+                .post("/matches/createMatch");
+
+        //ASSERT
+        assertEquals(201, response.getStatusCode());
+        CreateMatchResponseDTO created = response.as(CreateMatchResponseDTO.class);
+        assertNotNull(created);
+        assertEquals(1, created.getId());
+        assertEquals(1, created.getPlayerAId());
+        assertEquals(2, created.getPlayerBId());
+        assertEquals("11-9", created.getScore());
+        assertEquals(Match.Status.CONFIRMED, created.getStatus());
+        assertEquals("a8252246-1764-4583-ab31-470ccdfe3d7d", created.getIdempotencyKey());
+    }
+
+    @Test
+    void createDisputedExistingMatch_returnsMatchDisputed() throws IOException {
+        //ARRANGE AND ACT
+        Response response = given()
+                .contentType("application/json")
+                .accept(ContentType.JSON)
+                .body(readStringFromFile("json/createDisputedMatch.json"))
+                .header("Idempotency-Key", "a8252246-1764-4583-ab31-470ccdfe3d7f")
+                .post("/matches/createMatch");
+
+        //ASSERT
+        assertEquals(201, response.getStatusCode());
+        CreateMatchResponseDTO created = response.as(CreateMatchResponseDTO.class);
+        assertNotNull(created);
+        assertEquals(1, created.getId());
+        assertEquals(1, created.getPlayerAId());
+        assertEquals(2, created.getPlayerBId());
+        assertEquals("11-9", created.getScore());
+        assertEquals(Match.Status.DISPUTED, created.getStatus());
+        assertEquals("a8252246-1764-4583-ab31-470ccdfe3d7d", created.getIdempotencyKey());
     }
 }
 

@@ -36,11 +36,14 @@ public class Match {
     @Column(name = "idempotency_key", nullable = false, updatable = false)
     private String idempotencyKey;
 
+    private LocalDateTime disputedAt;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum Status {
         PENDING,
-        CONFIRMED
+        CONFIRMED,
+        DISPUTED
     }
 
     public Match(Player playerA,

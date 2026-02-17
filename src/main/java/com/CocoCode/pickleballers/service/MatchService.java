@@ -39,14 +39,20 @@ public class MatchService {
             if (pending.isPresent()) {
                 Match existing = pending.get();
 
-                if (!existing.getIdempotencyKey().equals(match.getIdempotencyKey())
-                        && existing.getScore().equalsIgnoreCase(match.getScore())) { //todo - make better score comparison and add dispute resolution process
-                    existing.setStatus(Match.Status.CONFIRMED);
+                if (!existing.getIdempotencyKey().equals(match.getIdempotencyKey())) {
+
+                    if (scoresMatch(existing, match)) {
+                        existing.setStatus(Match.Status.CONFIRMED);
+                    } else {
+                        existing.setStatus(Match.Status.DISPUTED);
+                        existing.setDisputedAt(LocalDateTime.now());
+                    }
+
                     return matchRepository.save(existing);
                 }
-                else {
-                    return existing;
-                }
+
+                return existing;
+
             }
 
             match.setStatus(Match.Status.PENDING);
@@ -64,10 +70,18 @@ public class MatchService {
     @Transactional
     public CreateMatchResponseDTO createMatch(CreateMatchRequestDTO request, String idempotencyKey) {
 
+        Pair normalized = normalizePlayers(
+                request.getPlayerAId(),
+                request.getPlayerBId()
+        );
+
+        long a = normalized.a();
+        long b = normalized.b();
+
         Match match = new Match(
-                playerRepository.getReferenceById(request.getPlayerAId()),
-                playerRepository.getReferenceById(request.getPlayerBId()),
-                request.getScore(),
+                playerRepository.getReferenceById(a),
+                playerRepository.getReferenceById(b),
+                normalizeScore(request.getScore()),
                 Match.Status.PENDING,
                 idempotencyKey,
                 LocalDateTime.now()
@@ -86,4 +100,23 @@ public class MatchService {
         );
     }
 
+    private boolean scoresMatch(Match existing, Match incoming) {
+        return normalizeScore(existing.getScore())
+                .equals(normalizeScore(incoming.getScore()));
+    }
+
+
+    private String normalizeScore(String score) {
+        if (score == null || score.isBlank()) {
+            throw new IllegalArgumentException("Score required");
+        }
+        return score.replaceAll("\\s+", "");
+    }
+
+    private record Pair(long a, long b) {}
+
+    private Pair normalizePlayers(long a, long b) {
+        if (a == b) throw new IllegalArgumentException("Player cannot play themselves");
+        return a <= b ? new Pair(a, b) : new Pair(b, a);
+    }
 }

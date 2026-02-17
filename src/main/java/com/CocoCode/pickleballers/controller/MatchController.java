@@ -27,8 +27,7 @@ public class MatchController {
     @PostMapping("/createMatch")
     public ResponseEntity<CreateMatchResponseDTO> createMatch(
             @RequestBody CreateMatchRequestDTO match,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
-
+            @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
         CreateMatchResponseDTO createdMatch = matchService.createMatch(match, idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdMatch);
     }

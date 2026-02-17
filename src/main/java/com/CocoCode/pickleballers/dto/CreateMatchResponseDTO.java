@@ -17,6 +17,6 @@ public class CreateMatchResponseDTO {
     private Long playerBId;
     private String score;
     private Match.Status status;
-    private String idempotencyKey;
+    private String idempotencyKey; // Keeping for easier debugging and testing, but will be removed in future iterations
     private LocalDateTime createdAt;
 }
