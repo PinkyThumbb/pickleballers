@@ -59,4 +59,14 @@ public class Match {
         this.idempotencyKey = idempotencyKey;
         this.createdAt = createdAt;
     }
+
+    public void resolveAgainst(String incomingScore) {
+        if (this.score.equals(incomingScore)) {
+            this.status = Status.CONFIRMED;
+        } else {
+            this.status = Status.DISPUTED;
+            this.disputedAt = LocalDateTime.now();
+        }
+    }
+
 }

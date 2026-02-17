@@ -5,6 +5,7 @@ import com.CocoCode.pickleballers.dto.CreateMatchResponseDTO;
 import com.CocoCode.pickleballers.entity.Match;
 import com.CocoCode.pickleballers.repository.MatchRepository;
 import com.CocoCode.pickleballers.service.MatchService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class MatchController {
 
     @PostMapping("/createMatch")
     public ResponseEntity<CreateMatchResponseDTO> createMatch(
-            @RequestBody CreateMatchRequestDTO match,
+            @Valid @RequestBody CreateMatchRequestDTO match,
             @RequestHeader(value = "Idempotency-Key") String idempotencyKey) {
         CreateMatchResponseDTO createdMatch = matchService.createMatch(match, idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdMatch);
