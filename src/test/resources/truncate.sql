@@ -1,4 +1,5 @@
 TRUNCATE TABLE
     player,
-    match
+    match,
+    match_event
 RESTART IDENTITY CASCADE;

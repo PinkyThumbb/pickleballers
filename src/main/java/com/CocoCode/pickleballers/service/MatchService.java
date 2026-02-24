@@ -2,8 +2,10 @@ package com.CocoCode.pickleballers.service;
 
 import com.CocoCode.pickleballers.dto.CreateMatchRequestDTO;
 import com.CocoCode.pickleballers.dto.CreateMatchResponseDTO;
+import com.CocoCode.pickleballers.dto.MatchEventResponseDTO;
 import com.CocoCode.pickleballers.entity.Match;
 
+import com.CocoCode.pickleballers.entity.MatchEvent;
 import com.CocoCode.pickleballers.helper.PlayerServiceHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -62,6 +65,7 @@ public class MatchService {
             Match existing = pending.get();
 
             if (existing.getIdempotencyKey().equals(match.getIdempotencyKey())) {
+                matchServiceHelper.recordEvent(existing, MatchEvent.EventType.IDEMPOTENT_DUPLICATE, match.getIdempotencyKey(), match.getScore());
                 return existing;
             }
 
@@ -69,7 +73,8 @@ public class MatchService {
                 return matchServiceHelper.resolvePending(existing, match);
             }
 
-            log.warn("Match {} is DISPUTED — returning existing without resolving", existing.getId());
+            log.warn("Match {} is DISPUTED — returning existing without resolving", existing.getId()); //NEED TO RESOLVE DISPUTED MATCHES IN FUTURE ITERATION
+            matchServiceHelper.recordEvent(existing, MatchEvent.EventType.DISPUTED, match.getIdempotencyKey(), match.getScore());
             return existing;
 
         } catch (DataIntegrityViolationException e) {
@@ -80,6 +85,10 @@ public class MatchService {
                     .findByIdempotencyKey(match.getIdempotencyKey())
                     .orElseThrow(() -> e);
         }
+    }
+
+    public List<MatchEventResponseDTO> getMatchHistory(Long matchId) {
+        return matchServiceHelper.getMatchHistory(matchId);
     }
 
     private record Pair(long a, long b) {}
