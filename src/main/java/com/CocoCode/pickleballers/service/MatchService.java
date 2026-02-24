@@ -4,17 +4,13 @@ import com.CocoCode.pickleballers.dto.CreateMatchRequestDTO;
 import com.CocoCode.pickleballers.dto.CreateMatchResponseDTO;
 import com.CocoCode.pickleballers.entity.Match;
 
-import com.CocoCode.pickleballers.helper.MatchServiceHelper;
 import com.CocoCode.pickleballers.helper.PlayerServiceHelper;
-import com.CocoCode.pickleballers.repository.PlayerRepository;
-import com.CocoCode.pickleballers.validator.ScoreValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j
@@ -22,13 +18,15 @@ import java.util.Optional;
 @AllArgsConstructor
 public class MatchService {
 
-    private final PlayerRepository playerRepository;
     private final MatchServiceHelper matchServiceHelper;
     private final PlayerServiceHelper playerServiceHelper;
-    private final ScoreValidator scoreValidator;
 
     @Transactional
     public CreateMatchResponseDTO createMatch(CreateMatchRequestDTO request, String idempotencyKey) {
+
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            throw new IllegalArgumentException("Idempotency key required");
+        }
 
         Pair normalized = normalizePlayers(
                 request.getPlayerAId(),
@@ -37,7 +35,7 @@ public class MatchService {
 
         playerServiceHelper.validatePlayersExist(normalized.a(), normalized.b());
 
-        Match match = buildMatch(normalized.a(), normalized.b(), request.getScore(), idempotencyKey);
+        Match match = matchServiceHelper.buildMatch(normalized.a(), normalized.b(), request.getScore(), idempotencyKey);
 
         Match saved = saveMatch(match);
 
@@ -52,22 +50,7 @@ public class MatchService {
         );
     }
 
-    private Match buildMatch(long a, long b, String score, String idempotencyKey) {
-        return new Match(
-                playerRepository.getReferenceById(a),
-                playerRepository.getReferenceById(b),
-                scoreValidator.normalizeScore(score),
-                Match.Status.PENDING,
-                idempotencyKey,
-                LocalDateTime.now()
-        );
-    }
-
     private Match saveMatch(Match match) {
-
-        if (match.getIdempotencyKey() == null || match.getIdempotencyKey().isBlank()) {
-            throw new IllegalArgumentException("Idempotency key required");
-        }
 
         try {
             Optional<Match> pending = matchServiceHelper.findExistingMatch(match.getPlayerA().getId(), match.getPlayerB().getId());
@@ -78,7 +61,7 @@ public class MatchService {
 
             Match existing = pending.get();
 
-            if (matchServiceHelper.isSameRequest(existing, match)) {
+            if (existing.getIdempotencyKey().equals(match.getIdempotencyKey())) {
                 return existing;
             }
 
@@ -86,6 +69,7 @@ public class MatchService {
                 return matchServiceHelper.resolvePending(existing, match);
             }
 
+            log.warn("Match {} is DISPUTED — returning existing without resolving", existing.getId());
             return existing;
 
         } catch (DataIntegrityViolationException e) {
