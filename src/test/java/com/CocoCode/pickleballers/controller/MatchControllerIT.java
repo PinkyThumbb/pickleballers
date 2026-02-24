@@ -99,5 +99,20 @@ public class MatchControllerIT extends BaseIT {
         assertEquals(Match.Status.DISPUTED, created.getStatus());
         assertEquals("a8252246-1764-4583-ab31-470ccdfe3d7d", created.getIdempotencyKey());
     }
+
+    @Test
+    void createDisputedExistingMatchInvalidScore_returnsError() throws IOException {
+        //ARRANGE AND ACT
+        Response response = given()
+                .contentType("application/json")
+                .accept(ContentType.JSON)
+                .body(readStringFromFile("json/createDisputedMatchInvalidScore.json"))
+                .header("Idempotency-Key", "a8252246-1764-4583-ab31-470ccdfe3d7f")
+                .post("/matches/createMatch");
+
+        //ASSERT
+        assertEquals(400, response.getStatusCode());
+        assertEquals("Winner must win by at least 2 points", response.jsonPath().getString("error"));
+    }
 }
 
